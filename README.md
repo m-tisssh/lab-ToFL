@@ -35,18 +35,6 @@ Concatenation
 │   │   └── Symbol
 └── Symbol
 
-Грамматика для (a|b)c:
-Типы операторов и токенов:
-{'type': 'Operator', 'value': '('}
-{'type': 'Symbol', 'value': 'a'}
-{'type': 'Operator', 'value': '|'}
-{'type': 'Symbol', 'value': 'b'}
-{'type': 'Operator', 'value': ')'}
-{'type': 'Symbol', 'value': 'c'}
-{'type': 'EndOfString', 'value': '$'}
-
-{'type': 'CaptureStart', 'index': 1}
-{'type': 'CaptureEnd', 'index': 1}
 S = N_5 | ε
 T_1 = a
 T_2 = b
