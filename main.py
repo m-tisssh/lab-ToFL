@@ -163,7 +163,7 @@ def build_ks_grammar(regex: str) -> str:
             counter += 1
             rules.insert(0, f"{rule_name} = {sub_name} {rule_name} | ε")
             return rule_name
-        elif node['type'] == 'Capture':
+        elif node['type'] in {'Capture', 'NoCapture'}:
             return traverse(node['node'], parent_name)
         return ""
     
