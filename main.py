@@ -128,7 +128,14 @@ def print_tree(node: ASTNode, indent: str = "", is_last: bool = False, is_root: 
     branch = "" if is_root else ("└── " if is_last else "├── ")  
     next_indent = "" if is_root else ("    " if is_last else "│   ")
 
-    print(f"{indent}{branch}{node['type']}")
+    # Улучшенный вывод дерева 
+    if node['type'] == 'Symbol':
+        print(f"{indent}{branch}{node['type']} ({node['val']})")  # Отображение символа
+    elif node['type'] == 'GroupLink':
+        print(f"{indent}{branch}{node['type']} (#{node['group_index']})")  # Отображение номера группы
+    else:
+        print(f"{indent}{branch}{node['type']}")
+        
     for key in ['left', 'right', 'node']:
         if key in node:
             print_tree(node[key], indent + next_indent, key == 'right', False)
@@ -172,23 +179,22 @@ def build_ks_grammar(regex: str) -> str:
     return "\n".join(reversed(rules))
 
 regex_examples = [
-    "(?=abc)def",   # Правильный lookahead
-    "(?=(?=abc)def)", # Неправильный вложенный lookahead
-    "(a|(bb))(a|(?3))", # Корректная ссылка на группу
+    # "(?=abc)def",   # Правильный lookahead
+    # "(?=(?=abc)def)", # Неправильный вложенный lookahead
+    # "(a|(bb))(a|(?3))", # Корректная ссылка на группу
     # "a*b",   
     # "(a|b)c", 
-    # "(ab)*c"
+    # "(ab)*c",
+    "(?=(a))(?:a)", # Группы захвата недопустимы внутри опережающей проверки
+    "(?=(a))a" # Группы захвата недопустимы внутри опережающей проверки
 ]
 
 for regex in regex_examples:
-    try:
-        print(f"\nПроверка: {regex}")
-        ast = parse(regex)
-        print("\nРегулярное выражение корректно.")
-        print("\nДерево AST:")
-        print_tree(ast)
-        print(f"\nГрамматика для {regex}:")
-        print(build_ks_grammar(regex))
-    except ValueError as e:
-        print("\nРегулярное выражение не корректно.")
-        print(f"Ошибка: {e}")
+    print(f"\nПроверка: {regex}")
+    ast = parse(regex)
+    print("\nРегулярное выражение корректно.")
+    print("\nДерево AST:")
+    print_tree(ast)
+    print(f"\nГрамматика для {regex}:")
+    print(build_ks_grammar(regex))
+
