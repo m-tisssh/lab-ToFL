@@ -157,6 +157,8 @@ def build_ks_grammar(regex: str) -> str:
     ast = parse(regex)
     rules = []
     counter = 1
+    group_num = {}
+    unresolved_links = []
     
     def traverse(node, parent_name="S"):
         nonlocal counter
@@ -183,10 +185,31 @@ def build_ks_grammar(regex: str) -> str:
             rules.insert(0, f"{rule_name} = {sub_name} {rule_name} | ε")
             return rule_name
         elif node['type'] in {'Capture', 'NoCapture'}:
-            return traverse(node['node'], parent_name)
+            sub_name = traverse(node['node'], parent_name)
+            if node['type'] == 'Capture':
+                group_num[node['index']] = sub_name
+            return sub_name
+        elif node['type'] == 'GroupLink':
+            group_index = node['group_index']
+            rule_name = f"N_{counter}"
+            counter += 1
+            if group_index in group_num:
+                rules.insert(0, f"{rule_name} = {group_num[group_index]}")
+            else:
+                unresolved_links.append((rule_name, group_index))
+            return rule_name
+        elif node['type'] == 'LookAhead':
+            return "ε"  # LookAhead всегда эквивалентен epsilon
         return ""
     
     start_symbol = traverse(ast)
+
+    for rule_name, group_index in unresolved_links:
+        if group_index in group_num:
+            rules.insert(0, f"{rule_name} = {group_num[group_index]}")
+        else:
+            raise ValueError(f"Неразрешенная ссылка на группу: {group_index}")
+    
     rules.append(f"S = {start_symbol} | ε")
     return "\n".join(reversed(rules))
 
