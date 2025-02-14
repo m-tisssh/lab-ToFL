@@ -87,12 +87,24 @@ def parse(regex: str) -> ASTNode:
                     return {'type': 'NoCapture', 'node': node}
                 elif current_token()['value'] == '=':
                     if lookahead_depth > 0:
-                        raise ValueError("Запрещено вложение lookahead")
+                        raise ValueError("Запрещено вложение опережающих проверок")
                     consume('=')
                     lookahead_depth += 1
                     node = parse_alternative()
                     lookahead_depth -= 1
                     consume(')')
+
+                    # Проверка: есть ли группы захвата внутри lookahead
+                    def contains_capture(node):
+                        if not node:
+                            return False
+                        if node['type'] == 'Capture':
+                            return True
+                        return any(contains_capture(node.get(k)) for k in ['left', 'right', 'node'])
+
+                    if contains_capture(node):
+                        raise ValueError("Группы захвата недопустимы внутри опережающих проверок")
+
                     return {'type': 'LookAhead', 'node': node}
                 elif current_token()['value'].isdigit():  # Ссылка на группу
                     group_index = int(current_token()['value'])
